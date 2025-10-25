@@ -15,8 +15,6 @@ A Bengali language chatbot built with **Django** and **Bangla-BERT embeddings**,
 - Fallback response for unknown queries
 - CPU-friendly for VPS or local development
 
----
-
 ## Demo
 
 ![Chatbot Demo](https://via.placeholder.com/600x400.png?text=Chatbot+Demo+Placeholder)
@@ -28,7 +26,6 @@ A Bengali language chatbot built with **Django** and **Bangla-BERT embeddings**,
   - "হ্যালো"
   - "আজকের আবহাওয়া কেমন"
 
----
 
 ## Installation
 
@@ -63,15 +60,11 @@ python manage.py runserver
 
 Visit [http://127.0.0.1:8000](http://127.0.0.1:8000) to chat with the bot.
 
----
-
 ## Usage
 
 * Type Bangla messages in the chat box.
 * Bot will reply based on semantic similarity.
 * Add more phrases or responses in `intents.csv` to expand capabilities.
-
----
 
 ## Customization
 
@@ -82,28 +75,15 @@ Visit [http://127.0.0.1:8000](http://127.0.0.1:8000) to chat with the bot.
   * `responses`: semicolon-separated responses
 * The chatbot automatically computes embeddings for all examples.
 
----
-
 ## License
 
 MIT License
-
-```
-
----
 
 This version includes:
 
 - Python & Django badges  
 - Placeholder for **demo GIF or image**  
-- Clear sections for Features, Installation, Usage, and Customization  
-
----
-
-If you want, I can **also generate a small demo GIF showing chat interactions** you can drop into the README for GitHub — it makes the project look professional and interactive.  
-
-Do you want me to do that next?
-```
+- Clear sections for Features, Installation, Usage, and Customization
 
 # About me
 I’m a passionate web developer with experience in building scalable and secure applications. I specialize in Laravel, Django, JavaScript and server management with Nginx. I enjoy automating workflows, optimizing performance, and deploying modern web solutions on VPS environments. I believe in clean code, continuous learning, and sharing knowledge through open-source contributions.
