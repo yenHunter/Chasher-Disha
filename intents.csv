@@ -1,0 +1,17 @@
+text,intent
+তুমি কেমন আছো,greet
+হ্যালো,greet
+শুভ সকাল,greet
+শুভ সন্ধ্যা,greet
+ধন্যবাদ,thanks
+অনেক ধন্যবাদ,thanks
+তুমি কে,ask_name
+তোমার নাম কি,ask_name
+তোমার নামটা কি বলবে,ask_name
+তুমি কি মানুষ,ask_name
+তুমি কোথায় থাকো,ask_location
+তোমার বয়স কত,ask_age
+বিদায়,bye
+আবার দেখা হবে,bye
+কি খবর,ask_activity
+তুমি কি করছো,ask_activity
