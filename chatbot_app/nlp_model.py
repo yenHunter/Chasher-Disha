@@ -1,37 +1,61 @@
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
-import os
+import torch
+from transformers import AutoTokenizer, AutoModel
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+import random
 
-# Load training data from CSV
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_PATH = os.path.join(BASE_DIR, 'intents.csv')
+# Load Bangla-BERT
+MODEL_NAME = "sagorsarker/bangla-bert-base"
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModel.from_pretrained(MODEL_NAME)
 
-data = pd.read_csv(DATA_PATH)
+# Load intents.csv
+data = pd.read_csv("intents.csv")
 
-# Prepare data
-X_train = data['text']
-y_train = data['intent']
+intents = []
+examples = []
+responses = {}
 
-# Train model
-vectorizer = TfidfVectorizer()
-X = vectorizer.fit_transform(X_train)
-model = MultinomialNB()
-model.fit(X, y_train)
+# Parse CSV and collect examples
+for _, row in data.iterrows():
+    intent = row["intent"]
+    # Handle missing values
+    exs_raw = row.get("examples")
+    res_raw = row.get("responses")
+    if pd.isna(exs_raw) or pd.isna(res_raw):
+        continue
 
-# Responses (you can expand this)
-RESPONSES = {
-    "greet": "হ্যালো! কেমন আছেন?",
-    "thanks": "আপনাকেও ধন্যবাদ 😊",
-    "ask_name": "আমার নাম বাংলা বট 🤖",
-    "bye": "বিদায়! আবার দেখা হবে 👋",
-    "ask_activity": "আমি এখন তোমার সঙ্গে কথা বলছি 🙂",
-}
+    exs = [e.strip() for e in str(exs_raw).split(";")]
+    resps = [r.strip() for r in str(res_raw).split(";")]
 
-def get_response(text):
-    if not text.strip():
-        return "কিছু লিখুন দয়া করে 🙂"
+    intents.append(intent)
+    examples.extend([(intent, e) for e in exs])
+    responses[intent] = resps
 
-    X_test = vectorizer.transform([text])
-    intent = model.predict(X_test)[0]
-    return RESPONSES.get(intent, "দুঃখিত, আমি সেটা বুঝতে পারিনি 😅")
+# Function to get embedding
+def get_embedding(text):
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    with torch.no_grad():
+        outputs = model(**inputs)
+        embeddings = outputs.last_hidden_state.mean(dim=1)  # mean pooling
+    return embeddings[0].numpy()
+
+# Precompute embeddings for all examples
+example_embeddings = [(intent, ex, get_embedding(ex)) for intent, ex in examples]
+
+# Get response function
+def get_response(user_input):
+    user_emb = get_embedding(user_input)
+
+    # Compute cosine similarity with all example embeddings
+    sims = [(intent, cosine_similarity([user_emb], [emb])[0][0]) for intent, _, emb in example_embeddings]
+
+    # Pick the best matching intent
+    best_intent, best_score = max(sims, key=lambda x: x[1])
+
+    # Threshold to handle unknown inputs
+    if best_score < 0.60:
+        return "দুঃখিত, আমি বুঝতে পারিনি 😔"
+
+    return random.choice(responses[best_intent])
