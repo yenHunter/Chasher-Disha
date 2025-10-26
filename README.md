@@ -17,7 +17,7 @@ A Bengali language chatbot built with **Django** and **Bangla-BERT embeddings**,
 
 ## Demo
 
-![Chatbot Demo](https://via.placeholder.com/600x400.png?text=Chatbot+Demo+Placeholder)
+![Chatbot Demo](https://github.com/yenHunter/Chasher-Disha/blob/master/chatbot_project/static/chasher-disha.png)
 
 - Type a message in Bangla in the chat box.
 - Bot responds using semantic understanding.
@@ -50,13 +50,21 @@ env\Scripts\activate          # Windows
 pip install -r requirements.txt
 ```
 
-4. **Run the server**
+4. **Create a .env file in root**
+Get your Open Weater API key from [OpenWeather](https://openweathermap.org/)
+
+```dotenv
+# .env 
+OPENWEATHER_API_KEY=your_api_key_here
+```
+
+5. **Run the server**
 
 ```bash
 python manage.py runserver
 ```
 
-5. **Open in browser**
+6. **Open in browser**
 
 Visit [http://127.0.0.1:8000](http://127.0.0.1:8000) to chat with the bot.
 
