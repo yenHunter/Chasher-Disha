@@ -4,6 +4,7 @@ from transformers import AutoTokenizer, AutoModel
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import random
+import datetime
 
 # Load Bangla-BERT
 MODEL_NAME = "sagorsarker/bangla-bert-base"
@@ -53,9 +54,30 @@ def get_response(user_input):
 
     # Pick the best matching intent
     best_intent, best_score = max(sims, key=lambda x: x[1])
+    
+    print(f"Best intent: {best_intent} with score {best_score}")
+    
+    if best_intent == 'weather_query':
+        return '__ASK_WEATHER__'
 
     # Threshold to handle unknown inputs
     if best_score < 0.60:
         return "দুঃখিত, আমি বুঝতে পারিনি 😔"
 
-    return random.choice(responses[best_intent])
+    response = random.choice(responses[best_intent])
+
+    # If the response contains {current_time}, replace it with actual time
+    if "{current_time}" in response:
+        now = datetime.datetime.now()
+        # Format time as 08:12 PM
+        time_str = now.strftime("%I:%M %p")
+        response = response.replace("{current_time}", time_str)
+
+    # return response
+
+    if "{current_date}" in response:
+        today = datetime.date.today()
+        date_str = today.strftime("%d %B, %Y")
+        response = response.replace("{current_date}", date_str)
+    
+    return response

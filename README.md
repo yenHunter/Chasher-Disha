@@ -1,7 +1,7 @@
 # Chasher-Disha (চাষের দিশা): Bangla NLP Chatbot 🤖
 
 [![Python](https://img.shields.io/badge/python-3.14-blue)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/django-5.0-green)](https://www.djangoproject.com/)
+[![Django](https://img.shields.io/badge/django-5.2.7-green)](https://www.djangoproject.com/)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 A Bengali language chatbot built with **Django** and **Bangla-BERT embeddings**, capable of understanding natural Bangla input and responding intelligently. Users can interact through a web-based frontend.
@@ -32,7 +32,7 @@ A Bengali language chatbot built with **Django** and **Bangla-BERT embeddings**,
 1. **Clone the repository**
 
 ```bash
-git clone [https://github.com/yenHunter/Chasher-Disha.git](https://github.com/yenHunter/Chasher-Disha.git)
+git clone https://github.com/yenHunter/Chasher-Disha.git
 cd Chasher-Disha
 ````
 

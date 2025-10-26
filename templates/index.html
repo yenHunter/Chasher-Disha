@@ -1,45 +1,222 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Bangla Chatbot</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        #chatbox { width: 400px; height: 500px; border: 1px solid #ccc; overflow-y: auto; padding: 10px; }
-        .user { text-align: right; color: blue; margin: 5px; }
-        .bot { text-align: left; color: green; margin: 5px; }
-        #message { width: 300px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="চাষের দিশা - আপনার কৃষি সহযোগী চ্যাটবট">
+    <title>চাষের দিশা</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.png' %}">
+    <link href="{% static 'css/swap.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'plugins/font-awesome/css/all.min.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.1.0/remixicon.min.css">
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'css/swap.css' %}">
+    <link rel="stylesheet" href="{% static 'css/boostrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/media-query.css' %}">
 </head>
+
 <body>
-    <h2>Bangla Chatbot 🤖</h2>
-    <div id="chatbox"></div>
-    <input type="text" id="message" placeholder="আপনার বার্তা লিখুন">
-    <button id="send">Send</button>
-
-    <script>
-        function addMessage(sender, text) {
-            let msgClass = sender === "user" ? "user" : "bot";
-            $("#chatbox").append("<div class='" + msgClass + "'>" + text + "</div>");
-            $("#chatbox").scrollTop($("#chatbox")[0].scrollHeight);
-        }
-
-        $("#send").click(function() {
-            let msg = $("#message").val();
-            if(msg.trim() === "") return;
-
-            addMessage("user", msg);
-            $("#message").val("");
-
-            $.get("/chat/", { message: msg }, function(data) {
-                addMessage("bot", data.response);
-            });
-        });
-
-        // Enter key sends message
-        $("#message").keypress(function(e) {
-            if(e.which === 13) $("#send").click();
-        });
-    </script>
+    <div class="site_content">
+        <!-- ====================================== Page Loader ===================================== -->
+        <div class="loader">
+            <div class="shapes"></div>
+        </div>
+        <!-- ====================================== Page Loader End===================================== -->
+        <!-- ====================================== Amigo Chat Screen ===================================== -->
+        <div class="verification-main">
+            <div class="container verify-screen-main p-0">
+                <div class="amigo-chat-menu-main">
+                    <div class="d-flex align-items-center">
+                        <a href="javascript:history.go(-1)">
+                            <img class="profile-pic" src="{% static 'images/Button-Back.png' %}" alt="Button-Back">
+                        </a>
+                        <h1>চাষের দিশা</h1>
+                    </div>
+                    <div>
+                        <img class="chat-menu-img" src="{% static 'images/chat-menu-img.png' %}" data-bs-toggle="offcanvas"
+                            data-bs-target="#offcanvasRight" alt="chat-menu-img">
+                    </div>
+                </div>
+                <!-- ======================== Side Menu =========================== -->
+                <div class="amigo-chat-AI-main">
+                    <div class="chat">
+                        <div class="chat-title">
+                            <figure class="avatar">
+                                <img src="{% static 'chasher-disha.png' %}" alt="logo">
+                            </figure>
+                        </div>
+                        <div id="mySidenav" class="sidenav">
+                            <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight">
+                                <div class="offcanvas-body">
+                                    <a class="space" href="#" onclick="toggleNav()">
+                                        <svg class="chat-menu-svg" xmlns="http://www.w3.org/2000/svg" width="20"
+                                            height="20" viewBox="0 0 20 20" fill="none">
+                                            <mask id="mask0_3_3386" style="mask-type:alpha" maskUnits="userSpaceOnUse"
+                                                x="0" y="0" width="20" height="20">
+                                                <path d="M0 0H20V20H0V0Z" fill="white" />
+                                            </mask>
+                                            <g mask="url(#mask0_3_3386)">
+                                                <path class="chat-sidenav-icon"
+                                                    d="M4 16.7737H7.33333L16.0833 8.02369C16.3022 7.80482 16.4758 7.54498 16.5943 7.25902C16.7127 6.97305 16.7737 6.66655 16.7737 6.35702C16.7737 6.04749 16.7127 5.741 16.5943 5.45503C16.4758 5.16906 16.3022 4.90923 16.0833 4.69036C15.8645 4.47149 15.6046 4.29787 15.3187 4.17942C15.0327 4.06097 14.7262 4 14.4167 4C14.1071 4 13.8006 4.06097 13.5147 4.17942C13.2287 4.29787 12.9689 4.47149 12.75 4.69036L4 13.4404V16.7737Z"
+                                                    stroke="#0F0F0F" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                                <path class="chat-sidenav-icon" d="M11.917 5.52368L15.2503 8.85701"
+                                                    stroke="#0F0F0F" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                            </g>
+                                        </svg>
+                                        Rename
+                                    </a>
+                                    <a class="space" href="#" onclick="toggleNav()">
+                                        <svg class="chat-menu-svg" xmlns="http://www.w3.org/2000/svg" width="20"
+                                            height="20" viewBox="0 0 20 20" fill="none">
+                                            <mask id="mask0_3_3378" style="mask-type:alpha" maskUnits="userSpaceOnUse"
+                                                x="0" y="0" width="20" height="20">
+                                                <path d="M0 0H20V20H0V0Z" fill="white" />
+                                            </mask>
+                                            <g mask="url(#mask0_3_3378)">
+                                                <path class="chat-sidenav-icon"
+                                                    d="M8.33301 8.33337L11.6663 11.6667M11.6663 8.33337L8.33301 11.6667"
+                                                    stroke="#0F0F0F" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                                <path class="chat-sidenav-icon"
+                                                    d="M10 2.5C16 2.5 17.5 4 17.5 10C17.5 16 16 17.5 10 17.5C4 17.5 2.5 16 2.5 10C2.5 4 4 2.5 10 2.5Z"
+                                                    stroke="#0F0F0F" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                            </g>
+                                        </svg>
+                                        Clear Chat
+                                    </a>
+                                    <a class="space" href="#" onclick="toggleNav()">
+                                        <svg class="chat-menu-svg" xmlns="http://www.w3.org/2000/svg" width="20"
+                                            height="20" viewBox="0 0 20 20" fill="none">
+                                            <mask id="mask0_3_3369" style="mask-type:alpha" maskUnits="userSpaceOnUse"
+                                                x="0" y="0" width="20" height="20">
+                                                <path d="M0 0H20V20H0V0Z" fill="white" />
+                                            </mask>
+                                            <g mask="url(#mask0_3_3369)">
+                                                <path class="chat-sidenav-icon"
+                                                    d="M6.66699 10L10.0003 13.3333L13.3337 10" stroke="#0F0F0F"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                <path class="chat-sidenav-icon" d="M10 6.66663V13.3333" stroke="#0F0F0F"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                <path class="chat-sidenav-icon"
+                                                    d="M10 2.5C16 2.5 17.5 4 17.5 10C17.5 16 16 17.5 10 17.5C4 17.5 2.5 16 2.5 10C2.5 4 4 2.5 10 2.5Z"
+                                                    stroke="#0F0F0F" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                            </g>
+                                        </svg>
+                                        Export Chat
+                                    </a>
+                                    <a href="#finger-print-modal" data-bs-toggle="modal">
+                                        <svg class="chat-menu-svg" xmlns="http://www.w3.org/2000/svg" width="20"
+                                            height="20" viewBox="0 0 20 20" fill="none">
+                                            <mask id="mask0_3_3360" style="mask-type:alpha" maskUnits="userSpaceOnUse"
+                                                x="0" y="0" width="20" height="20">
+                                                <path d="M0 0H20V20H0V0Z" fill="white" />
+                                            </mask>
+                                            <g mask="url(#mask0_3_3360)">
+                                                <path class="chat-sidenav-icon"
+                                                    d="M11.6667 6.66671V5.00004C11.6667 4.55801 11.4911 4.13409 11.1785 3.82153C10.866 3.50897 10.442 3.33337 10 3.33337H4.16667C3.72464 3.33337 3.30072 3.50897 2.98816 3.82153C2.67559 4.13409 2.5 4.55801 2.5 5.00004V15C2.5 15.4421 2.67559 15.866 2.98816 16.1786C3.30072 16.4911 3.72464 16.6667 4.16667 16.6667H10C10.442 16.6667 10.866 16.4911 11.1785 16.1786C11.4911 15.866 11.6667 15.4421 11.6667 15V13.3334"
+                                                    stroke="#0F0F0F" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" />
+                                                <path class="chat-sidenav-icon" d="M7.5 10H17.5L15 7.5" stroke="#0F0F0F"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                <path class="chat-sidenav-icon" d="M15 12.5L17.5 10" stroke="#0F0F0F"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            </g>
+                                        </svg>
+                                        End Session
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ======================================  Chat with Amigo ===================================== -->
+                        <div class="messages">
+                            <div class="messages-content"></div>
+                        </div>
+                        <div class="chat-input">
+                            <div class="message-box">
+                                <textarea class="message-input" placeholder="Write here..."></textarea>
+                                <svg class="specker" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                    viewBox="0 0 24 24" fill="none">
+                                    <mask id="mask0_3_3619" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0"
+                                        y="0" width="24" height="24">
+                                        <rect width="24" height="24" fill="white" />
+                                    </mask>
+                                    <g mask="url(#mask0_3_3619)">
+                                        <path class="specker-file"
+                                            d="M15 5C15 3.34315 13.6569 2 12 2C10.3431 2 9 3.34315 9 5V10C9 11.6569 10.3431 13 12 13C13.6569 13 15 11.6569 15 10V5Z"
+                                            stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path class="specker-file"
+                                            d="M5 10C5 11.8565 5.7375 13.637 7.05025 14.9497C8.36301 16.2625 10.1435 17 12 17C13.8565 17 15.637 16.2625 16.9497 14.9497C18.2625 13.637 19 11.8565 19 10"
+                                            stroke="#555555" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path class="specker-file" d="M8 21H16" stroke="#555555" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path class="specker-file" d="M12 17V21" stroke="#555555" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </g>
+                                </svg>
+                            </div>
+                            <button type="submit" class="message-submit">
+                                <svg class="send-icons" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                    viewBox="0 0 24 24" fill="none">
+                                    <mask id="mask0_3_3689" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0"
+                                        y="0" width="24" height="24">
+                                        <rect width="24" height="24" fill="white" />
+                                    </mask>
+                                    <g mask="url(#mask0_3_3689)">
+                                        <path class="icon-send-message" d="M10 14L21 3" stroke="white" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path class="icon-send-message"
+                                            d="M21.0006 3L14.5006 21C14.4567 21.0957 14.3862 21.1769 14.2976 21.2338C14.209 21.2906 14.1059 21.3209 14.0006 21.3209C13.8952 21.3209 13.7921 21.2906 13.7035 21.2338C13.6149 21.1769 13.5444 21.0957 13.5006 21L10.0006 14L3.00056 10.5C2.90482 10.4561 2.82369 10.3857 2.7668 10.2971C2.70992 10.2084 2.67969 10.1053 2.67969 10C2.67969 9.89468 2.70992 9.79158 2.7668 9.70295C2.82369 9.61431 2.90482 9.54387 3.00056 9.5L21.0006 3Z"
+                                            stroke="white" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                    </g>
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- ======================================  Chat with Amigo End ===================================== -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- ====================================== Amigo Chat Screen End===================================== -->
+        <!-- ====================================== Chat End Session Pop Up ===================================== -->
+        <div class="modal fade" id="finger-print-modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content finger-modal-content">
+                    <div class="modal-body">
+                        <div class="finger-print-modal-popup">
+                            <div class="finger-img-sec">
+                                <img class="robot4-gif" src="{% static 'images/end-session.png' %}" alt="Congratulation-img">
+                            </div>
+                            <div class="finger-content-sec mt-32">
+                                <h2 class="congratulations">End Session</h2>
+                                <p class="few-sec">Are you sure you want to end session the chat with Amigo GPT?</p>
+                                <div class="session-btn-main">
+                                    <button class="end-session session-btn"
+                                        onclick="location.href='Amigo_GPT_home.html'">Yes, End Session</button>
+                                    <button class="end-session cancel-btn"
+                                        onclick="location.href='amigo_chat.html'">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'javascript/jquery.min.js' %}"></script>
+    <script src="{% static 'javascript/chat/chat_scrollbar.js' %}"></script>
+    <script src="{% static 'javascript/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'javascript/chat/chat.js' %}"></script>
+    <script src="{% static 'javascript/script.js' %}"></script>
 </body>
+
 </html>
