@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'),  # load index.html at root
-    path('chat/', views.chat, name='chat'),  # AJAX endpoint
+    path('', views.home, name='home'),
+    path('chat/', views.chat, name='chat'),
     path('get_weather/', views.get_weather, name='get_weather'),
 ]

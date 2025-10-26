@@ -1,4 +1,4 @@
-# Chasher-Disha (চাষের দিশা): Bangla NLP Chatbot 🤖
+# Chasher-Disha (চাষের দিশা): Bangla NLP Chatbot
 
 [![Python](https://img.shields.io/badge/python-3.14-blue)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/django-5.2.7-green)](https://www.djangoproject.com/)

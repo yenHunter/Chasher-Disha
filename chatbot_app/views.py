@@ -37,6 +37,8 @@ def get_weather(request):
                 weather = weather_data['weather'][0]['main'].lower()
                 clouds = weather_data['clouds']['all']
                 temp = weather_data['main']['temp']
+                feels_like = weather_data['main']['feels_like']
+                humidity = weather_data['main']['humidity']
                 if weather in ['rain', 'drizzle', 'thunderstorm']:
                     rain = 100
                 if weather in ['clear', 'haze', 'mist', 'smoke', 'dust', 'fog', 'sand', 'ash', 'squall', 'tornado']:
@@ -53,7 +55,7 @@ def get_weather(request):
                 else:
                     rain = 5
                 
-                weather_text = f"আপনার বর্তমান অবস্থান {location} । এখন তাপমাত্রা {round(temp)}°C, বৃষ্টির সম্ভাবনা: {rain}%।"
+                weather_text = f"আপনার বর্তমান অবস্থান {location} । এখন তাপমাত্রা {round(temp)}°C, অনুভুত হবে {round(feels_like)}°C -এর মত। আদ্রতা: {humidity}% ও বৃষ্টির সম্ভাবনা: {rain}%।"
                 return JsonResponse({'weather': weather_text})
             else:
                 return JsonResponse({'weather': "আবহাওয়ার তথ্য পাওয়া যায়নি।"}, status=400)
