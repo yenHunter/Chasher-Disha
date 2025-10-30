@@ -62,3 +62,45 @@ def get_weather(request):
         else:
             return JsonResponse({'weather': "লোকেশন পাওয়া যায়নি।"}, status=400)
     return JsonResponse({'weather': "Invalid request."}, status=400)
+
+@csrf_exempt
+def predict_disease(request):
+    if request.method == "POST" and request.FILES.get("image"):
+        image_file = request.FILES["image"]
+
+        api_key = settings.ROBOFLOW_API_KEY
+        model = getattr(settings, "ROBOFLOW_MODEL", "plant-disease-detection-2")
+        version = getattr(settings, "ROBOFLOW_VERSION", "1")
+        url = f"https://detect.roboflow.com/{model}/{version}?api_key={api_key}"
+
+        response = requests.post(
+            url,
+            files={"file": image_file},
+            data={"name": image_file.name}
+        )
+
+        if response.status_code == 200:
+            result = response.json()
+            if result.get("predictions"):
+                top_pred = max(result["predictions"], key=lambda x: x["confidence"])
+                label = top_pred["class"]
+                confidence = top_pred["confidence"]
+                return JsonResponse({
+                    "success": True,
+                    "label": label,
+                    "confidence": f"{confidence*100:.1f}%"
+                })
+            else:
+                return JsonResponse({
+                    "success": False,
+                    "error": "কোনো রোগ শনাক্ত করা যায়নি।"
+                })
+        else:
+            return JsonResponse({
+                "success": False,
+                "error": "API তে সমস্যা হয়েছে।"
+            })
+    return JsonResponse({
+        "success": False,
+        "error": "ছবি আপলোড করুন।"
+    })

@@ -137,5 +137,10 @@ MEDIA_ROOT = BASE_DIR /'media'
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# Example: read your API key
+# OpenWeatherMap API Key
 OPENWEATHER_API_KEY = env('OPENWEATHER_API_KEY')
+
+# RoboFlow API settings
+ROBOFLOW_API_KEY = env('ROBOFLOW_API_KEY')
+ROBOFLOW_MODEL = env('ROBOFLOW_MODEL')
+ROBOFLOW_VERSION = env('ROBOFLOW_VERSION')
