@@ -27,6 +27,21 @@ db.sqlite3-journal
 local_settings.py
 .env
 .env.*
+!.env.example
+
+# ML model weights (too large for Git — download via scripts/download_model.py)
+chatbot_app/ml/models/*.pt
+chatbot_app/ml/models/*.onnx
+
+# Collected static files
+staticfiles/
+
+# React / Node
+web/node_modules/
+web/dist/
+web/.env
+web/.env.*
+!web/.env.example
 
 # Ignore user-uploaded files (MEDIA_ROOT)
 media/

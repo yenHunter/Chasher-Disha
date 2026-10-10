@@ -11,8 +11,11 @@ MODEL_NAME = "sagorsarker/bangla-bert-base"
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModel.from_pretrained(MODEL_NAME)
 
-# Load intents.csv
-data = pd.read_csv("intents.csv")
+# Load intents.csv using an absolute path anchored to Django's BASE_DIR
+# (M0: BUG-4) — bare "intents.csv" breaks when CWD ≠ project root
+from django.conf import settings as _django_settings
+_CSV_PATH = _django_settings.BASE_DIR / 'intents.csv'
+data = pd.read_csv(_CSV_PATH)
 
 intents = []
 examples = []
@@ -66,18 +69,9 @@ def get_response(user_input):
 
     response = random.choice(responses[best_intent])
 
-    # If the response contains {current_time}, replace it with actual time
-    if "{current_time}" in response:
-        now = datetime.datetime.now()
-        # Format time as 08:12 PM
-        time_str = now.strftime("%I:%M %p")
-        response = response.replace("{current_time}", time_str)
+    # Substitute template variables  (M0: CODE-5 — removed dead '# return response')
+    now = datetime.datetime.now()
+    response = response.replace("{current_time}", now.strftime("%I:%M %p"))
+    response = response.replace("{current_date}", now.strftime("%d %B, %Y"))
 
-    # return response
-
-    if "{current_date}" in response:
-        today = datetime.date.today()
-        date_str = today.strftime("%d %B, %Y")
-        response = response.replace("{current_date}", date_str)
-    
     return response
