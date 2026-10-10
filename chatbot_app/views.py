@@ -1,106 +1,77 @@
-import requests
 import json
-from django.conf import settings
 from django.shortcuts import render
 from django.http import JsonResponse
-from .nlp_model import get_response
 from django.views.decorators.csrf import csrf_exempt
+from .nlp_model import get_response
 
-OPENWEATHER_API_KEY = settings.OPENWEATHER_API_KEY
-
-# View to render index.html
+# ---------------------------------------------------------------------------
+# Home — serves the current Django template (will be replaced by React in M6)
+# ---------------------------------------------------------------------------
 def home(request):
-    return render(request, "index.html")  # make sure index.html is in templates folder
+    return render(request, "index.html")
 
-# AJAX view for chat
+
+# ---------------------------------------------------------------------------
+# Chat  (M0: BUG-2 guard added; full REST migration in M3)
+# ---------------------------------------------------------------------------
 def chat(request):
-    if request.method == "GET":
-        user_input = request.GET.get("message", "")
-        if user_input.strip() == "":
-            return JsonResponse({"response": "দুঃখিত, আমি কিছুই পাইনি 😔"})
-        
-        bot_response = get_response(user_input)
-        return JsonResponse({"response": bot_response})
+    if request.method != "GET":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
 
-@csrf_exempt
+    user_input = request.GET.get("message", "").strip()
+    if not user_input:
+        return JsonResponse({"response": "দুঃখিত, আমি কিছুই পাইনি 😔"})
+
+    bot_response = get_response(user_input)
+    return JsonResponse({"response": bot_response})
+
+
+# ---------------------------------------------------------------------------
+# Weather  (M0 stub — OpenWeatherMap removed; full Open-Meteo impl in M2)
+# ---------------------------------------------------------------------------
+@csrf_exempt   # temporary — replaced by JWT auth in M3/SEC-3
 def get_weather(request):
-    if request.method == 'POST':
+    """
+    STUB: OpenWeatherMap removed in M0 (no API key required for Open-Meteo).
+    Full implementation with Open-Meteo API lands in M2.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'weather': "Invalid request."}, status=400)
+
+    try:
         data = json.loads(request.body)
-        lat = data.get('latitude')
-        lon = data.get('longitude')
-        if lat and lon:
-            url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHER_API_KEY}&units=metric&lang=bn"
-            resp = requests.get(url)
-            if resp.status_code == 200:
-                weather_data = resp.json()
-                location = weather_data['name']
-                weather = weather_data['weather'][0]['main'].lower()
-                clouds = weather_data['clouds']['all']
-                temp = weather_data['main']['temp']
-                feels_like = weather_data['main']['feels_like']
-                humidity = weather_data['main']['humidity']
-                if weather in ['rain', 'drizzle', 'thunderstorm']:
-                    rain = 100
-                if weather in ['clear', 'haze', 'mist', 'smoke', 'dust', 'fog', 'sand', 'ash', 'squall', 'tornado']:
-                    rain = 0
-                
-                if clouds >= 90:
-                    rain = 80
-                elif clouds >= 70:
-                    rain = 60
-                elif clouds >= 50:
-                    rain = 40
-                elif clouds >= 30:
-                    rain = 20
-                else:
-                    rain = 5
-                
-                weather_text = f"আপনার বর্তমান অবস্থান {location} । এখন তাপমাত্রা {round(temp)}°C, অনুভুত হবে {round(feels_like)}°C -এর মত। আদ্রতা: {humidity}% ও বৃষ্টির সম্ভাবনা: {rain}%।"
-                return JsonResponse({'weather': weather_text})
-            else:
-                return JsonResponse({'weather': "আবহাওয়ার তথ্য পাওয়া যায়নি।"}, status=400)
-        else:
-            return JsonResponse({'weather': "লোকেশন পাওয়া যায়নি।"}, status=400)
-    return JsonResponse({'weather': "Invalid request."}, status=400)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'weather': "অনুরোধ বিন্যাস ভুল।"}, status=400)
 
-@csrf_exempt
+    lat = data.get('latitude')
+    lon = data.get('longitude')
+
+    if not (lat and lon):
+        return JsonResponse({'weather': "লোকেশন পাওয়া যায়নি।"}, status=400)
+
+    # TODO (M2/WX-1): replace with Open-Meteo API call
+    return JsonResponse({
+        'weather': "আবহাওয়া সার্ভিস আপগ্রেড চলছে। শীঘ্রই পুনরায় পাওয়া যাবে।"
+    })
+
+
+# ---------------------------------------------------------------------------
+# Disease detection  (M0 stub — Roboflow removed; full YOLO impl in M4)
+# ---------------------------------------------------------------------------
+@csrf_exempt   # temporary — replaced by JWT auth in M3/SEC-3
 def predict_disease(request):
-    if request.method == "POST" and request.FILES.get("image"):
-        image_file = request.FILES["image"]
+    """
+    STUB: Roboflow cloud API removed in M0.
+    Full implementation with local YOLOv8-nano model lands in M4.
+    """
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Method not allowed."}, status=405)
 
-        api_key = settings.ROBOFLOW_API_KEY
-        model = getattr(settings, "ROBOFLOW_MODEL", "plant-disease-detection-2")
-        version = getattr(settings, "ROBOFLOW_VERSION", "1")
-        url = f"https://detect.roboflow.com/{model}/{version}?api_key={api_key}"
+    if not request.FILES.get("image"):
+        return JsonResponse({"success": False, "error": "ছবি আপলোড করুন।"}, status=400)
 
-        response = requests.post(
-            url,
-            files={"file": image_file},
-            data={"name": image_file.name}
-        )
-
-        if response.status_code == 200:
-            result = response.json()
-            if result.get("predictions"):
-                top_pred = max(result["predictions"], key=lambda x: x["confidence"])
-                label = top_pred["class"]
-                confidence = top_pred["confidence"]
-                return JsonResponse({
-                    "success": True,
-                    "label": label,
-                    "confidence": f"{confidence*100:.1f}%"
-                })
-            else:
-                return JsonResponse({
-                    "success": False,
-                    "error": "কোনো রোগ শনাক্ত করা যায়নি।"
-                })
-        else:
-            return JsonResponse({
-                "success": False,
-                "error": "API তে সমস্যা হয়েছে।"
-            })
+    # TODO (M4/ML-4): replace with local YOLO inference
     return JsonResponse({
         "success": False,
-        "error": "ছবি আপলোড করুন।"
+        "error": "রোগ শনাক্তকরণ সার্ভিস আপগ্রেড চলছে। শীঘ্রই পুনরায় পাওয়া যাবে।"
     })
