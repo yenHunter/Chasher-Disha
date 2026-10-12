@@ -138,6 +138,21 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ---------------------------------------------------------------------------
+# Cache  (M2: WX-2 — Nominatim place-name results cached to avoid repeated
+# HTTP calls for the same coordinates)
+# ---------------------------------------------------------------------------
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "chasher-disha-cache",
+    }
+}
+# In production, switch to redis:
+#   BACKEND: "django.core.cache.backends.redis.RedisCache"
+#   LOCATION: env("REDIS_URL", default="redis://127.0.0.1:6379/1")
+
+
+# ---------------------------------------------------------------------------
 # Fertilizer feature flag  (M5: FERT-2)
 # ---------------------------------------------------------------------------
 FERTILIZER_USE_MOCK = env('FERTILIZER_USE_MOCK')

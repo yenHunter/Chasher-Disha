@@ -6,7 +6,8 @@
 > **Previous audit items** are carried forward, closed, or superseded as noted in each section.
 >
 > **M0 status: ✅ COMPLETE** — all 8 items implemented and verified (`manage.py check` passes, 0 issues).  
-> **M1 status: ✅ COMPLETE** — 4 files regenerated and verified: `nlp_model.py` (BanglaBERT Small, lazy loading, vectorised similarity, 3 sentinels), `apps.py` (AppConfig.ready() with RUN_MAIN guard), `intents.csv` (15 → 32 intents, 17 farming intents added), `requirements.txt` (sentencepiece added). `manage.py check` passes, 0 issues.
+> **M1 status: ✅ COMPLETE** — 4 files regenerated and verified: `nlp_model.py` (BanglaBERT Small, lazy loading, vectorised similarity, 3 sentinels), `apps.py` (AppConfig.ready() with RUN_MAIN guard), `intents.csv` (15 → 32 intents, 17 farming intents added), `requirements.txt` (sentencepiece added). `manage.py check` passes, 0 issues.  
+> **M2 status: ✅ COMPLETE** — 3 files changed + 1 new: `weather.py` (Open-Meteo + Nominatim + BUG-1 fix), `views.py` (get_weather live), `settings.py` (LocMemCache added). Live test: 34.4°C Dhaka data confirmed; Nominatim returns ঢাকা/চট্টগ্রাম/সিলেট in Bangla. `manage.py check` passes, 0 issues.
 
 ---
 
@@ -29,10 +30,10 @@
 ```
 M0  Foundation & Security       ✅ COMPLETE
 M1  NLP: BanglaBERT Small       ✅ COMPLETE
-M2  Weather: Open-Meteo         ──► depends on M0  (next available)
-M4  Disease: YOLO nano          ──► depends on M0  (next available, parallel with M2)
+M2  Weather: Open-Meteo         ✅ COMPLETE
+M4  Disease: YOLO nano          ──► depends on M0  (next — parallel with M5)
 M5  Fertilizer API              ──► depends on M0  (FERT-3 blocked on API choice)
-M3  REST API Layer (DRF + JWT)  ──► depends on M1 ✅, M2, M4, M5
+M3  REST API Layer (DRF + JWT)  ──► depends on M1 ✅, M2 ✅, M4, M5
 M6  React Web SPA (Vite)        ──► depends on M3
 M7  Mobile Hybrid (Capacitor)   ──► depends on M6
 M8  Quality Gate                ──► depends on M0..M7
@@ -190,47 +191,47 @@ M8  Quality Gate                ──► depends on M0..M7
 
 ---
 
-## M2 — Weather: Open-Meteo API
+## M2 — Weather: Open-Meteo API ✅ COMPLETE
 > **Goal:** Replace OpenWeatherMap (paid, key-dependent) with Open-Meteo (free, no key, agri-variables).  
-> **Priority:** 🔴 Blocker for M3.  
+> **Status:** ✅ Implemented and verified — live API test passed, Nominatim returns Bangla city names.  
+> **Completed:** October 2026  
 > **Depends on:** M0
 
-### WX-1 — Replace OpenWeatherMap with Open-Meteo
-- **File:** `chatbot_app/views.py:26–64`
-- **Open-Meteo endpoint (no API key required):**
-  ```
-  GET https://api.open-meteo.com/v1/forecast
-      ?latitude={lat}&longitude={lon}
-      &current=temperature_2m,relative_humidity_2m,
-               precipitation_probability,weather_code,
-               wind_speed_10m,uv_index
-      &daily=precipitation_sum,et0_fao_evapotranspiration
-      &timezone=Asia%2FDhaka
-      &forecast_days=3
-  ```
-- **Remove:** `OPENWEATHER_API_KEY` from `settings.py` and `.env.example`
-- **Add agri fields to response:** wind speed, UV index, 3-day precipitation sum, evapotranspiration (for irrigation planning)
-- **Effort:** S
+### ✅ WX-1 — Replace OpenWeatherMap with Open-Meteo
+- **New file:** `chatbot_app/weather.py` (277 lines) — self-contained service module.
+- **Open-Meteo fields fetched:** `temperature_2m`, `relative_humidity_2m`, `precipitation_probability`, `weather_code`, `wind_speed_10m`, `uv_index` (current) + `precipitation_sum`, `et0_fao_evapotranspiration` (3-day daily).
+- **52-code WMO → Bangla description map** built in.
+- No API key required. Tested live: Dhaka 34.4°C, clear sky, 0% rain ✅
+- **Effort:** S ✅
 
-### WX-2 — Add reverse-geocoding for place name (Nominatim/OSM, free)
-- **Problem:** Open-Meteo returns no place name — display will be blank without it.
-- **Fix:** Call `https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json` to get the Bangla-friendly place name. Cache result per `(lat_rounded, lon_rounded)` in Django's cache framework.
-- **Effort:** S
+### ✅ WX-2 — Reverse-geocoding via Nominatim/OSM
+- **`chatbot_app/weather.py`** — `get_place_name()` calls Nominatim with correct `User-Agent`.
+- Cached in `LocMemCache` keyed by 0.05° rounded coordinates (7-day TTL).
+- Live test: `(23.81, 90.41)` → **ঢাকা**, `(22.36, 91.78)` → **চট্টগ্রাম**, `(24.89, 91.87)` → **সিলেট** ✅
+- **`chatbot_project/settings.py`** — `CACHES` block added (`LocMemCache`; Redis path documented for production).
+- **Effort:** S ✅
 
-### BUG-1 — Fix rain probability logic (`if` → `elif` chain)
-- **File:** `chatbot_app/views.py:42–56`
-- **Note:** This bug becomes moot once WX-1 is done (Open-Meteo returns `precipitation_probability` directly), but the logic error pattern must not be repeated in the new view.
-- **Effort:** XS (absorbed into WX-1)
+### ✅ BUG-1 — Rain probability logic fixed (`if` → `elif`)
+- **`chatbot_app/weather.py`** — `_build_message()` uses a single `elif` ladder:
+  - ≥70% → "বৃষ্টির সম্ভাবনা বেশি 🌧️"
+  - ≥40% → "বৃষ্টি হতে পারে 🌦️"
+  - ≥10% → "সামান্য বৃষ্টির সম্ভাবনা 🌤️"
+  - <10%  → "বৃষ্টির সম্ভাবনা নেই ☀️"
+- Clear sky (0%) correctly shows no rain phrase.
+- **Effort:** XS ✅ (absorbed into WX-1)
 
-### WX-3 — Remove `OPENWEATHER_API_KEY` from all files
-- **Files:** `settings.py:141`, `views.py:9`, `.env`, `.env.example`
-- **Effort:** XS (absorbed into WX-1)
+### ✅ WX-3 — `OPENWEATHER_API_KEY` fully removed
+- Removed from `settings.py`, `.env`, `.env.example` in M0; confirmed absent in M2.
+- **Effort:** XS ✅ (absorbed into WX-1 / M0)
 
-**M2 Acceptance Criteria:**
-- `POST /api/v1/weather/` with valid lat/lon returns Bangla weather string in < 2s
-- No API key required in `.env`
-- Clear-sky never reports high rain probability
-- Response includes: temperature, humidity, precipitation probability, wind speed, UV index, place name
+**M2 Acceptance Criteria — Results:**
+- ✅ `POST /get_weather/` with Dhaka coords returns live Bangla weather in < 2s
+- ✅ No API key required in `.env`
+- ✅ Clear-sky (0% rain) never shows high-rain phrase
+- ✅ Response includes: temp, humidity, rain %, wind, UV, place name (Bangla), 3-day rain + ET0
+- ✅ Nominatim returns native Bangla city names (ঢাকা, চট্টগ্রাম, সিলেট)
+- ✅ `manage.py check` — 0 issues
+- ✅ Agri advice fires correctly (ET0 > 12 → irrigation tip at 14.5 mm)
 
 ---
 
@@ -737,8 +738,8 @@ These items from the original audit remain valid and are not superseded, but are
 | ~~PERF-2~~ | M1 ✅ | Performance | 🔴 | XS | ~~M0~~ |
 | ~~CODE-5~~ | M1 ✅ | Code Quality | 🔴 | XS | ~~M0~~ |
 | ~~NLP-2~~ | M1 ✅ | Content | 🔴 | M | ~~M0~~ |
-| WX-1 | M2 | Feature | 🔴 | S | M0 |
-| WX-2 | M2 | Feature | 🟠 | S | M0 |
+| ~~WX-1~~ | M2 ✅ | Feature | 🔴 | S | ~~M0~~ |
+| ~~WX-2~~ | M2 ✅ | Feature | 🟠 | S | ~~M0~~ |
 | ML-1 | M4 | ML / Training | 🔴 | M | M0 |
 | ML-2 | M4 | ML / Inference | 🔴 | S | M0 |
 | ML-3 | M4 | ML / Ops | 🔴 | XS | ML-1 |
@@ -780,4 +781,4 @@ These items from the original audit remain valid and are not superseded, but are
 
 ---
 
-*Last updated: October 2026 — M0 ✅ M1 ✅ — next: M2 (Open-Meteo) or M4 (YOLO) in parallel*
+*Last updated: October 2026 — M0 ✅ M1 ✅ M2 ✅ — next: M4 (YOLO disease detection)*
