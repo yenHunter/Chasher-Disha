@@ -88,22 +88,96 @@ def get_weather(request):
 
 
 # ---------------------------------------------------------------------------
-# Disease detection  (M0 stub — Roboflow removed; full YOLO impl in M4)
+# Disease detection  (M4: ML-4 — local YOLOv8-nano inference)
 # ---------------------------------------------------------------------------
 @csrf_exempt   # temporary — replaced by JWT auth in M3/SEC-3
 def predict_disease(request):
     """
-    STUB: Roboflow cloud API removed in M0.
-    Full implementation with local YOLOv8-nano model lands in M4.
+    POST /predict_disease/
+    Body: multipart/form-data  — field name: "image"  (JPEG / PNG)
+
+    Runs the locally-trained YOLOv8-nano model (rice_disease.pt) and returns
+    the detected disease, confidence, Bangla name, management advice, and all
+    detected bounding boxes.
+
+    Response (success):
+        {
+          "success":        true,
+          "disease":        "Blast",
+          "disease_bn":     "ব্লাস্ট রোগ",
+          "confidence":     "87.3%",
+          "advice":         "ট্রাইসাইক্লাজল ছত্রাকনাশক ব্যবহার করুন।",
+          "all_detections": [...]
+        }
+
+    Response (model not ready — weights file missing):
+        HTTP 503  {"success": false, "error": "..."}
+
+    M4 implementation — replaces the M0 stub.  (BUG-3: Roboflow fully removed)
     """
     if request.method != "POST":
-        return JsonResponse({"success": False, "error": "Method not allowed."}, status=405)
+        return JsonResponse({"success": False, "error": "শুধু POST অনুরোধ গ্রহণযোগ্য।"}, status=405)
 
-    if not request.FILES.get("image"):
+    image_file = request.FILES.get("image")
+    if not image_file:
         return JsonResponse({"success": False, "error": "ছবি আপলোড করুন।"}, status=400)
 
-    # TODO (M4/ML-4): replace with local YOLO inference
+    # -- Basic file-type guard -----------------------------------------------
+    allowed_types = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
+    content_type  = getattr(image_file, "content_type", "").lower()
+    if content_type and content_type not in allowed_types:
+        return JsonResponse(
+            {"success": False, "error": "শুধু JPEG বা PNG ছবি গ্রহণযোগ্য।"},
+            status=400,
+        )
+
+    # -- File size guard (max 10 MB) -----------------------------------------
+    MAX_SIZE_BYTES = 10 * 1024 * 1024
+    if image_file.size > MAX_SIZE_BYTES:
+        return JsonResponse(
+            {"success": False, "error": "ছবির আকার ১০ MB-এর বেশি হওয়া উচিত নয়।"},
+            status=400,
+        )
+
+    image_bytes = image_file.read()
+
+    # -- Inference -----------------------------------------------------------
+    from .ml.rice_disease import (  # noqa: PLC0415
+        ModelNotReadyError,
+        InferenceError,
+        predict,
+    )
+
+    try:
+        result = predict(image_bytes)
+    except ModelNotReadyError as exc:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": (
+                    "রোগ শনাক্তকরণ মডেল এখনও প্রস্তুত নয়। "
+                    "প্রশিক্ষণ শেষ হয়নি বা weights ফাইল নেই।"
+                ),
+                "detail": str(exc),
+            },
+            status=503,
+        )
+    except ValueError as exc:
+        return JsonResponse(
+            {"success": False, "error": f"ছবি পড়া যায়নি: {exc}"},
+            status=400,
+        )
+    except InferenceError as exc:
+        return JsonResponse(
+            {"success": False, "error": f"মডেল ত্রুটি: {exc}"},
+            status=500,
+        )
+
     return JsonResponse({
-        "success": False,
-        "error": "রোগ শনাক্তকরণ সার্ভিস আপগ্রেড চলছে। শীঘ্রই পুনরায় পাওয়া যাবে।"
+        "success":        result["success"],
+        "disease":        result["disease"],
+        "disease_bn":     result["disease_bn"],
+        "confidence":     f"{result['confidence'] * 100:.1f}%",
+        "advice":         result["advice"],
+        "all_detections": result["all_detections"],
     })

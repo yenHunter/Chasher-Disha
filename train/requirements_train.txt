@@ -1,0 +1,9 @@
+# Training-only dependencies — NOT needed for the Django server
+# Install inside a separate venv or in Google Colab:
+#   pip install -r train/requirements_train.txt
+
+ultralytics>=8.3.0   # YOLOv8 + export to ONNX
+gdown>=5.2.0         # Google Drive download helper (optional, for Colab)
+split-folders>=0.5.1 # train/val/test split utility if dataset ships unsplit
+Pillow>=10.4.0       # image utilities
+matplotlib>=3.9.0    # training curve visualisation
