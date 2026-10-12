@@ -27,6 +27,8 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, ['127.0.0.1', 'localhost']),
     CORS_ALLOWED_ORIGINS=(list, []),
     FERTILIZER_USE_MOCK=(bool, True),
+    MODEL_DOWNLOAD_URL=(str, ''),
+    MODEL_ONNX_DOWNLOAD_URL=(str, ''),
 )
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
@@ -52,10 +54,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # M3: REST framework + CORS
+    'rest_framework',
+    'corsheaders',
     'chatbot_app',
 ]
 
 MIDDLEWARE = [
+    # CorsMiddleware must be first (before CommonMiddleware)  (M3: ARCH-5)
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -158,3 +165,45 @@ CACHES = {
 FERTILIZER_USE_MOCK = env('FERTILIZER_USE_MOCK')
 FERTILIZER_API_KEY = env('FERTILIZER_API_KEY', default='')
 FERTILIZER_API_URL = env('FERTILIZER_API_URL', default='')
+
+
+# ---------------------------------------------------------------------------
+# REST Framework  (M3: ARCH-5)
+# ---------------------------------------------------------------------------
+from datetime import timedelta  # noqa: E402
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/min',
+        'user': '60/min',
+        'chat': '20/min',
+        'disease': '10/min',
+    },
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS':  True,
+    'AUTH_HEADER_TYPES':      ('Bearer',),
+}
+
+# ---------------------------------------------------------------------------
+# CORS  (M3: ARCH-5) — origins that may call the REST API
+# ---------------------------------------------------------------------------
+CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS')
+# In development with React dev server, also allow credentials if needed:
+CORS_ALLOW_CREDENTIALS = False

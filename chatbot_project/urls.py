@@ -1,27 +1,25 @@
 """
 URL configuration for chatbot_project project.
 
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+Route map:
+    /api/v1/   →  chatbot_app.api_urls   (DRF REST API — M3)
+    /admin/    →  Django admin
+    /          →  chatbot_app.urls       (legacy Django-template UI — replaced in M6)
 """
 from django.contrib import admin
 from django.urls import path, include
-from chatbot_app import views
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+    # M3: REST API  (versioned, JWT-authenticated)
+    path('api/v1/', include('chatbot_app.api_urls', namespace='api')),
+
+    # Django admin (unchanged)
     path('admin/', admin.site.urls),
+
+    # Legacy template UI — still served until M6 React SPA replaces it
     path('', include('chatbot_app.urls')),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 
