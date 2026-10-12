@@ -1,0 +1,35 @@
+# RiceLeafDiseaseBD — YOLOv8 dataset configuration
+# Primary dataset: Mendeley 86s4jzj2m4 v3
+#   9,769 images · 21,460 annotated boxes · 5.25 GB
+#   Collected: BRRI dhan28/29, Gazipur, Bangladesh, Summer 2025
+#   Expert-validated: Cohen's κ = 0.82
+#
+# After downloading, set the paths below to match your local directory
+# layout.  The expected structure is:
+#
+#   RiceLeafDiseaseBD/
+#     images/
+#       train/   *.jpg / *.png
+#       val/     *.jpg / *.png
+#       test/    *.jpg / *.png
+#     labels/
+#       train/   *.txt  (YOLO format: class cx cy w h, normalised)
+#       val/     *.txt
+#       test/    *.txt
+#
+# Update `path` below to the absolute path of the RiceLeafDiseaseBD root.
+
+path: ../RiceLeafDiseaseBD   # CHANGE THIS to your dataset root
+train: images/train
+val:   images/val
+test:  images/test
+
+# --- Classes (6) -----------------------------------------------------------
+nc: 6
+names:
+  - Healthy
+  - Blast
+  - Brown Spot
+  - Leaf Smut
+  - Rice Tungro
+  - Sheath Blight

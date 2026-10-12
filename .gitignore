@@ -33,6 +33,10 @@ local_settings.py
 chatbot_app/ml/models/*.pt
 chatbot_app/ml/models/*.onnx
 
+# YOLO training runs (large artefacts — keep locally, not in repo)
+train/runs/
+train/datasets/
+
 # Collected static files
 staticfiles/
 

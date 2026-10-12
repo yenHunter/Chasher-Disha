@@ -1,0 +1,2 @@
+# This directory holds trained model weights (*.pt, *.onnx).
+# These files are in .gitignore — use scripts/download_model.py to fetch them.
