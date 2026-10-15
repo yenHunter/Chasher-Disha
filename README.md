@@ -1,103 +1,281 @@
-# Chasher-Disha (চাষের দিশা): Bangla NLP Chatbot
+# চাষের দিশা — Chasher-Disha
 
-[![Python](https://img.shields.io/badge/python-3.14-blue)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/django-5.2.7-green)](https://www.djangoproject.com/)
-[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+> **বাংলা কৃষি সহায়তা অ্যাপ্লিকেশন** · Bangla Agricultural Assistant
 
-A Bengali language chatbot built with **Django** and **Bangla-BERT embeddings**, capable of understanding natural Bangla input and responding intelligently. Users can interact through a web-based frontend.
+An offline-capable, mobile-first agricultural assistant for Bangladeshi farmers — Bangla NLP chatbot, AI-powered rice disease detection, hyperlocal weather, and fertilizer recommendations.
 
-## Features
+---
 
-- Semantic understanding using **Bangla-BERT** (`sagorsarker/bangla-bert-base`)
-- Handles multiple Bangla variations for the same intent
-- Live chat interface with AJAX frontend
-- Easy to extend by updating `intents.csv`
-- Fallback response for unknown queries
-- CPU-friendly for VPS or local development
+## Architecture
 
-## Demo
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Client Layer                                │
+│  ┌──────────────────────┐       ┌──────────────────────────────┐   │
+│  │  React 18 + Vite SPA │       │  Capacitor 8 Android App     │   │
+│  │  (web/src/)           │       │  (offline-first WebView)     │   │
+│  │  Tailwind · Zustand   │       │  ONNX disease on-device      │   │
+│  └──────────┬───────────┘       └──────────────┬───────────────┘   │
+└─────────────┼─────────────────────────────────┼───────────────────┘
+              │  JWT Bearer  /api/v1/             │
+┌─────────────┼─────────────────────────────────┼───────────────────┐
+│             │         Django 5.2 + DRF          │                   │
+│  ┌──────────▼──────────────────────────────────▼──────────────┐   │
+│  │           REST API  (/api/v1/)                              │   │
+│  │  POST /auth/token/    POST /chat/                           │   │
+│  │  POST /weather/       POST /disease/                        │   │
+│  │  GET  /history/       POST /auth/token/refresh/             │   │
+│  └──────┬──────────────┬──────────────┬──────────────┬────────┘   │
+│         │              │              │              │              │
+│  ┌──────▼──────┐ ┌─────▼──────┐ ┌────▼────┐ ┌──────▼──────┐      │
+│  │ BanglaBERT  │ │ Open-Meteo │ │  YOLO   │ │  Fertilizer │      │
+│  │ Small (NLP) │ │ + Nominatim│ │ nano v8 │ │  API (stub) │      │
+│  │  M1         │ │    M2      │ │   M4    │ │     M5      │      │
+│  └─────────────┘ └────────────┘ └─────────┘ └─────────────┘      │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
-![Chatbot Demo](https://github.com/yenHunter/Chasher-Disha/blob/master/chatbot_project/static/chasher-disha.png)
+---
 
-- Type a message in Bangla in the chat box.
-- Bot responds using semantic understanding.
-- Example inputs:
-  - "তুমি কে"
-  - "হ্যালো"
-  - "আজকের আবহাওয়া কেমন"
+## Quick Start (< 15 minutes)
 
+### Prerequisites
 
-## Installation
+| Tool | Version |
+|---|---|
+| Python | 3.12+ |
+| Node.js | 22+ |
+| Git | any |
+| Android Studio | Ladybug+ (for mobile only) |
 
-1. **Clone the repository**
+### 1 — Clone and create virtual environment
 
 ```bash
 git clone https://github.com/yenHunter/Chasher-Disha.git
 cd Chasher-Disha
-````
-
-2. **Create a virtual environment**
-
-```bash
 python -m venv env
-source env/bin/activate       # Linux/Mac
-env\Scripts\activate          # Windows
+# Windows
+.\env\Scripts\activate
+# macOS/Linux
+source env/bin/activate
 ```
 
-3. **Install dependencies**
+### 2 — Install Python dependencies
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements/dev.txt
 ```
 
-4. **Create a .env file in root**
-Get your Open Weater API key from [OpenWeather](https://openweathermap.org/)
+> **Note:** `torch` is large (~2 GB). For CI / lightweight installs use the CPU wheel:
+> ```bash
+> pip install torch --index-url https://download.pytorch.org/whl/cpu
+> pip install -r requirements/dev.txt
+> ```
 
-```dotenv
-# .env 
-OPENWEATHER_API_KEY=your_api_key_here
-```
-
-5. **Run the server**
+### 3 — Configure environment
 
 ```bash
+cp .env.example .env
+# Edit .env — at minimum set DJANGO_SECRET_KEY
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+### 4 — Run migrations and start Django
+
+```bash
+python manage.py migrate
+python manage.py createsuperuser   # optional, for admin panel
 python manage.py runserver
+# → http://127.0.0.1:8000
 ```
 
-6. **Open in browser**
+### 5 — Install and run the React frontend
 
-Visit [http://127.0.0.1:8000](http://127.0.0.1:8000) to chat with the bot.
+```bash
+npm --prefix web install
+npm --prefix web run dev
+# → http://localhost:5173  (proxies /api → Django:8000)
+```
 
-## Usage
+---
 
-* Type Bangla messages in the chat box.
-* Bot will reply based on semantic similarity.
-* Add more phrases or responses in `intents.csv` to expand capabilities.
+## API Reference
 
-## Customization
+All endpoints require a JWT Bearer token except the auth endpoints.
 
-* Each intent in `intents.csv` has:
+### Obtain token
 
-  * `intent`: unique name
-  * `examples`: semicolon-separated example phrases
-  * `responses`: semicolon-separated responses
-* The chatbot automatically computes embeddings for all examples.
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/auth/token/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "your_user", "password": "your_pass"}'
+# → {"access": "eyJ...", "refresh": "eyJ..."}
+```
 
-## License
+### POST `/api/v1/chat/`
 
-MIT License
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/chat/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "ধানে পোকা লেগেছে"}'
+# → {"response": "ধানের প্রধান ক্ষতিকর পোকা...", "intent": "pest_query", "confidence": 0.82}
+```
 
-This version includes:
+### POST `/api/v1/weather/`
 
-- Python & Django badges  
-- Placeholder for **demo GIF or image**  
-- Clear sections for Features, Installation, Usage, and Customization
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/weather/ \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"lat": 23.8103, "lon": 90.4125}'
+# → {"place": "ঢাকা", "condition": "맑은 하늘", "temp_c": 32.1, "rain_prob_pct": 5, ...}
+```
 
-# About me
-I’m a passionate web developer with experience in building scalable and secure applications. I specialize in Laravel, Django, JavaScript and server management with Nginx. I enjoy automating workflows, optimizing performance, and deploying modern web solutions on VPS environments. I believe in clean code, continuous learning, and sharing knowledge through open-source contributions.
+### POST `/api/v1/disease/`
 
-## Connect & Support
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/disease/ \
+  -H "Authorization: Bearer <access_token>" \
+  -F "image=@/path/to/rice_leaf.jpg"
+# → {"success": true, "disease": "Blast", "disease_bn": "ব্লাস্ট রোগ",
+#    "confidence": "87.3%", "advice": "ট্রাইসাইক্লাজল..."}
+# If weights not trained yet → HTTP 503
+```
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/firoz-ebna-jobaier)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-Support-yellow?style=for-the-badge&logo=buymeacoffee)](buymeacoffee.com/yenHunter)
-[![Fork me on GitHub](https://img.shields.io/badge/Fork_on_GitHub-000?style=for-the-badge&logo=github)](https://github.com/yenHunter)
+### GET `/api/v1/history/`
+
+```bash
+curl http://127.0.0.1:8000/api/v1/history/ \
+  -H "Authorization: Bearer <access_token>"
+# → {"count": 12, "next": null, "results": [...]}
+```
+
+---
+
+## Model Training (Rice Disease Detection)
+
+The disease detection endpoint requires `chatbot_app/ml/models/rice_disease.pt`.
+
+**Quickest path — Google Colab (free T4 GPU):**
+
+1. Download **RiceLeafDiseaseBD v3** from [Mendeley](https://data.mendeley.com/datasets/86s4jzj2m4/3)
+2. Open `train/colab_train.ipynb` in Colab and run all cells
+3. Download `rice_disease.pt` + `rice_disease.onnx` from Colab output
+4. Place both files in `chatbot_app/ml/models/`
+5. Place `rice_disease.onnx` also in `web/src/assets/` for on-device inference
+
+See [`train/README.md`](train/README.md) for local GPU training instructions.
+
+**Dataset attribution:**
+
+- Primary: RiceLeafDiseaseBD v3 — Md. Shoaib Ahmed Shibli, Mendeley Data, doi:[10.17632/86s4jzj2m4.3](https://data.mendeley.com/datasets/86s4jzj2m4/3)
+- Supplementary: Harvard Dataverse XAOBYW — doi:[10.7910/DVN/XAOBYW](https://doi.org/10.7910/DVN/XAOBYW)
+
+---
+
+## Mobile (Android)
+
+```bash
+# Build web assets first
+npm --prefix web run build
+
+# Add Android platform (first time only — requires Android Studio)
+cd web && npx cap add android
+
+# Sync web assets + Capacitor plugins into Android project
+npx cap sync android
+
+# Open in Android Studio → Build → Generate Signed APK
+npx cap open android
+```
+
+See [`web/android-res/README.md`](web/android-res/README.md) for icons, splash screen, and live-reload setup.
+
+---
+
+## Running Tests
+
+```bash
+# Django API tests (14 test cases)
+pytest chatbot_app/tests.py -v
+
+# With coverage
+pytest chatbot_app/tests.py --cov=chatbot_app --cov-report=term-missing
+
+# React component tests (20 test cases across 4 files)
+npm --prefix web run test
+
+# All tests
+make test
+```
+
+---
+
+## Project Structure
+
+```
+Chasher-Disha/
+├── chatbot_app/          # Django app
+│   ├── api_views.py      # DRF REST views (M3)
+│   ├── api_urls.py       # /api/v1/ URL patterns
+│   ├── ml/
+│   │   ├── rice_disease.py  # YOLOv8 inference wrapper (M4)
+│   │   └── models/          # *.pt / *.onnx weights (git-ignored)
+│   ├── nlp_model.py      # BanglaBERT Small NLP (M1)
+│   ├── weather.py        # Open-Meteo + Nominatim (M2)
+│   ├── views.py          # Legacy Django-template views
+│   └── tests.py          # pytest test suite (M8)
+├── chatbot_project/      # Django project settings + URLs
+├── web/                  # Vite + React SPA (M6) + Capacitor (M7)
+│   ├── src/
+│   │   ├── api/          # Axios client + typed endpoints
+│   │   ├── components/   # ChatBubble, WeatherCard, DiseaseResult, …
+│   │   ├── hooks/        # useChat, useWeather, useNetworkWatcher
+│   │   ├── lib/          # capacitorBridge, offlineNlp, onnxDisease, weatherCache
+│   │   ├── pages/        # Login, Chat, Weather, Disease, Fertilizer
+│   │   └── store/        # Zustand: auth, chat, network
+│   ├── capacitor.config.ts
+│   └── android-res/      # Icon / splash source + setup guide
+├── train/                # YOLOv8 training pipeline (M4)
+│   ├── train.py
+│   ├── colab_train.ipynb
+│   └── README.md
+├── scripts/              # download_model.py, smoke_test_api.py
+├── requirements/
+│   ├── base.txt          # production
+│   ├── dev.txt           # + pytest, ruff, black
+│   └── prod.txt          # + gunicorn, whitenoise
+├── .github/
+│   ├── workflows/ci.yml  # GitHub Actions CI (M8)
+│   └── TODO.md           # Master roadmap
+├── intents.csv           # 32 Bangla farming intents
+├── Makefile              # Developer shortcuts
+├── pyproject.toml        # ruff + black + pytest config
+└── .pre-commit-config.yaml
+```
+
+---
+
+## Milestone Status
+
+| Milestone | Status |
+|---|---|
+| M0 Foundation & Security | ✅ Complete |
+| M1 BanglaBERT Small NLP | ✅ Complete |
+| M2 Open-Meteo Weather | ✅ Complete |
+| M3 REST API (DRF + JWT) | ✅ Complete |
+| M4 YOLO Rice Disease | ✅ Complete (weights pending training) |
+| M6 Vite + React SPA | ✅ Complete |
+| M7 Capacitor Android + Offline | ✅ Complete (Android Studio sync pending) |
+| M8 Quality Gate | ✅ Complete |
+| M5 Fertilizer API | 🔲 Pending (API choice required) |
+
+---
+
+## Contributing
+
+1. Fork → feature branch → PR against `main`
+2. `pre-commit install` before first commit
+3. `make test` must pass locally
+4. Follow the branch naming: `feat/m*-description`, `fix/description`

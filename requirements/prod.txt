@@ -1,0 +1,10 @@
+# requirements/prod.txt — production server deployment
+# Install: pip install -r requirements/prod.txt
+
+-r base.txt
+
+# WSGI server
+gunicorn==23.0.0
+
+# Static file serving (whitenoise replaces Django's runserver static)
+whitenoise==6.8.2

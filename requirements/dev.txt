@@ -1,0 +1,19 @@
+# requirements/dev.txt — local development + testing
+# Install: pip install -r requirements/dev.txt
+
+-r base.txt
+
+# Testing
+pytest==8.3.4
+pytest-django==4.9.0
+coverage==7.6.9
+
+# Linting / formatting
+ruff==0.9.1
+black==24.10.0
+
+# Pre-commit
+pre-commit==4.0.1
+
+# Django dev helpers
+django-debug-toolbar==4.4.6

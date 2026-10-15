@@ -1,0 +1,41 @@
+# .pre-commit-config.yaml — M8: DX-2
+# Install hooks: pre-commit install
+# Run manually:  pre-commit run --all-files
+
+repos:
+  # ── Python: ruff (lint + auto-fix) ────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.1
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # ── Python: black (formatter) ─────────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  # ── General: trailing whitespace, EOF, YAML syntax ───────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # ── JS/TS: eslint ─────────────────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: eslint-web
+        name: ESLint (web/src)
+        language: system
+        entry: npm --prefix web run lint
+        pass_filenames: false
+        types: [file]
+        files: ^web/src/.*\.(ts|tsx)$

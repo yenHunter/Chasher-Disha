@@ -125,7 +125,7 @@ USE_TZ = True
 
 
 # ---------------------------------------------------------------------------
-# Static files  (M0: DEPLOY-1)
+# Static files  (M0: DEPLOY-1, M6: FRONT-8)
 # ---------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 STATIC_URL = 'static/'
@@ -133,6 +133,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'   # collectstatic target (not 'static/')
 STATICFILES_DIRS = [
     BASE_DIR / 'chatbot_project' / 'static',  # was bare relative string
 ]
+# M6: FRONT-8 — serve React build from Django in production
+_REACT_DIST = BASE_DIR / 'web' / 'dist'
+if _REACT_DIST.exists():
+    STATICFILES_DIRS.append(_REACT_DIST)
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

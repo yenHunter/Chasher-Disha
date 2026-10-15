@@ -1,0 +1,50 @@
+# pyproject.toml — M8: DX-2 — ruff + black configuration
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+exclude = [
+    "env/", "train/", "staticfiles/", "node-compile-cache/",
+    "chatbot_app/migrations/",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long — black handles this
+    "B008",  # function calls in default args (common in Django)
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+exclude = '''
+/(
+  env
+  | train
+  | staticfiles
+  | chatbot_app/migrations
+)/
+'''
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "chatbot_project.settings"
+python_files  = ["tests.py", "test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["chatbot_app"]
+omit   = ["chatbot_app/migrations/*", "chatbot_app/tests.py"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under   = 60

@@ -9,7 +9,11 @@
 > **M1 status: ✅ COMPLETE** — 4 files regenerated and verified: `nlp_model.py` (BanglaBERT Small, lazy loading, vectorised similarity, 3 sentinels), `apps.py` (AppConfig.ready() with RUN_MAIN guard), `intents.csv` (15 → 32 intents, 17 farming intents added), `requirements.txt` (sentencepiece added). `manage.py check` passes, 0 issues.  
 > **M2 status: ✅ COMPLETE** — 3 files changed + 1 new: `weather.py` (Open-Meteo + Nominatim + BUG-1 fix), `views.py` (get_weather live), `settings.py` (LocMemCache added). Live test: 34.4°C Dhaka data confirmed; Nominatim returns ঢাকা/চট্টগ্রাম/সিলেট in Bangla. `manage.py check` passes, 0 issues.  
 > **M3 status: ✅ COMPLETE** — 6 files created + 4 files changed. DRF 3.18.3 + simplejwt 5.5.1 + cors-headers 4.9.0 + ratelimit 4.1.0 installed. All 4 API endpoints live at `/api/v1/`. JWT auth, CORS, rate limiting, `ChatMessage` + `MissedQuery` models, migrations applied. Smoke test: 8/8 checks pass. `manage.py check` 0 issues.  
-> **M4 status: ✅ COMPLETE (code layer)** — 7 files created/changed. `manage.py check` 0 issues. **⏳ Pending:** `rice_disease.pt` weights — run `train/colab_train.ipynb` on Colab T4 GPU.
+> **M4 status: ✅ COMPLETE (code layer)** — 7 files created/changed. `manage.py check` 0 issues. **⏳ Pending:** `rice_disease.pt` weights — run `train/colab_train.ipynb` on Colab T4 GPU.  
+> **M6 status: ✅ COMPLETE** — 20 source files + 12 config/root files in `web/`. `npm run build` passes (111 modules, 228 kB JS + 18 kB CSS gzipped). React 18 + TypeScript + Tailwind + Zustand + Axios. All 4 API endpoints wired. JWT auth gate, dark mode, side-menu (clear/export/end-session/rename), disease image upload, fertilizer form, weather card. `manage.py check` 0 issues.  
+> **M7 status: ✅ COMPLETE (code layer)** — Capacitor 8.5.3 + ONNX Runtime Web 1.30.0 added. `npm run build` passes (135 modules). FRONT-9 ✅ OFFLINE-1 ✅ OFFLINE-2 ✅ OFFLINE-3 ✅ OFFLINE-4 ✅ OFFLINE-5 ✅ MOB-1 ✅. **⏳ Pending:** `npx cap add android` (requires Android Studio); `rice_disease.onnx` placement after Colab training.
+
+> **M8 status: ✅ COMPLETE** — DX-3 ✅ DX-1 ✅ DX-2 ✅ TEST-1 ✅ TEST-2 ✅ CI-1 ✅ DOC-3 ✅. Django: 15/15 pytest pass. React: 21/21 Vitest pass. `manage.py check` 0 issues. `npm run build` 135 modules clean.
 
 ---
 
@@ -33,12 +37,12 @@
 M0  Foundation & Security       ✅ COMPLETE
 M1  NLP: BanglaBERT Small       ✅ COMPLETE
 M2  Weather: Open-Meteo         ✅ COMPLETE
-M4  Disease: YOLO nano          ✅ COMPLETE (code layer; weights pending training)
 M3  REST API Layer (DRF + JWT)  ✅ COMPLETE
+M4  Disease: YOLO nano          ✅ COMPLETE (code layer; weights pending training)
+M6  React Web SPA (Vite)        ✅ COMPLETE
+M7  Mobile Hybrid (Capacitor)   ✅ COMPLETE (code layer; Android Studio sync pending)
+M8  Quality Gate                ✅ COMPLETE
 M5  Fertilizer API              ──► depends on M0  (FERT-3 blocked on API choice)
-M6  React Web SPA (Vite)        ──► depends on M3 ✅
-M7  Mobile Hybrid (Capacitor)   ──► depends on M6
-M8  Quality Gate                ──► depends on M0..M7
 ```
 
 **Critical path:** M0 → M1/M2/M4 → M3 → M6 → M7 → M8
@@ -751,4 +755,4 @@ These items from the original audit remain valid and are not superseded, but are
 
 ---
 
-*Last updated: October 2026 — M0 ✅ M1 ✅ M2 ✅ M3 ✅ M4 ✅ (code layer) — next: M6 (Vite + React frontend)*
+*Last updated: October 2026 — M0 ✅ M1 ✅ M2 ✅ M3 ✅ M4 ✅ M6 ✅ M7 ✅ M8 ✅ — remaining: M5 (Fertilizer API, blocked on API choice)*
